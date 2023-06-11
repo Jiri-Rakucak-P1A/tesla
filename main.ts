@@ -3,8 +3,8 @@ let speedFactor = 50
 let pin_M = DigitalPin.P15
 let pin_R = DigitalPin.P14
 let pin_L = DigitalPin.P13
-let pin_Trig = DigitalPin.P1
-let pin_Echo = DigitalPin.P8
+let pin_Trig = DigitalPin.P2
+let pin_Echo = DigitalPin.P1
 let whiteline = 0
 let connected = 0
 pins.setPull(pin_L, PinPullMode.PullNone)
@@ -19,8 +19,8 @@ let speed = 160
 let around = false
 //  Funkce na zlehčení použití motorů
 function motor_run(left: number = 0, right: number = 0) {
-    PCAmotor.MotorRun(PCAmotor.Motors.M1, Math.map(Math.constrain(-1* left * (speedFactor / 100), -100, 100), -100, 100, -160, 160))
-    PCAmotor.MotorRun(PCAmotor.Motors.M4, Math.map(Math.constrain(-1 * right * (speedFactor / 100), -100, 100), -100, 100, -160, 160))
+    PCAmotor.MotorRun(PCAmotor.Motors.M1, Math.map(Math.constrain(-1* left * (speedFactor / 100), -100, 100), -100, 100, -199, 199))
+    PCAmotor.MotorRun(PCAmotor.Motors.M4, Math.map(Math.constrain(-1 * right * (speedFactor / 100), -100, 100), -100, 100, -130, 130))
 }
 
 //  Funkce pro připojení mobilního zařízení + sbírání dat
@@ -30,7 +30,6 @@ bluetooth.onBluetoothConnected(function on_bluetooth_connected() {
     basic.showIcon(IconNames.Duck)
     connected = 1
     while (connected == 1) {
-        uartData = bluetooth.uartReadUntil(serial.delimiters(Delimiters.Hash))
     }
 })
 // funkce pro odpojení mobilního zařízení
@@ -82,34 +81,34 @@ basic.forever(function on_forever() {
         around = true
     }
     
-    if (manual) {
-        control.inBackground(function manual_wsad() {
+    // if (manual) {
+    //     control.inBackground(function manual_wsad() {
             
-            if (uartData == "E") {
-                // mírně doleva
-                motor_run(-100, -255)
-            } else if (uartData == "F") {
-                // mírně doprava
-                motor_run(-255, -100)
-            } else if (uartData == "A") {
-                // dopředu
-                motor_run(-255, -255)
-            } else if (uartData == "B") {
-                // dozadu
-                motor_run(255, 255)
-            } else if (uartData == "C") {
-                // otočit doprava
-                motor_run(255, -255)
-            } else if (uartData == "D") {
-                // otočit doleva
-                motor_run(-255, 255)
-            } else if (uartData == "0") {
-                // když bylo tlačítko "odmáčknuto" zastav se
-                PCAmotor.MotorStopAll()
-            }
+    //         if (uartData == "E") {
+    //             // mírně doleva
+    //             motor_run(-100, -255)
+    //         } else if (uartData == "F") {
+    //             // mírně doprava
+    //             motor_run(-255, -100)
+    //         } else if (uartData == "A") {
+    //             // dopředu
+    //             motor_run(-255, -255)
+    //         } else if (uartData == "B") {
+    //             // dozadu
+    //             motor_run(255, 255)
+    //         } else if (uartData == "C") {
+    //             // otočit doprava
+    //             motor_run(255, -255)
+    //         } else if (uartData == "D") {
+    //             // otočit doleva
+    //             motor_run(-255, 255)
+    //         } else if (uartData == "0") {
+    //             // když bylo tlačítko "odmáčknuto" zastav se
+    //             PCAmotor.MotorStopAll()
+    //         }
             
-        })
-    }
+    //     })
+    // }
 
     if (line_follower) {
         // jízda na 3 senzory
@@ -117,74 +116,73 @@ basic.forever(function on_forever() {
             //  když sonar zaznamená méně než 15 cm
             if (!around) {
                 //  => otoč se
-                motor_run(255, -255)
+                motor_run(160, -160)
                 basic.pause(400)
             } else {
                 //  => objet objekt 20x20x20 ...
-                motor_run(255, -255)
-                basic.pause(200)
+                motor_run(-160, 160)
+                basic.pause(100)
+                // doprava
+                motor_run(-160, -160)
+                basic.pause(380)
+                // rovně
+                motor_run(160, -160)
+                basic.pause(100)
                 // doleva
-                motor_run(-255, -255)
+                motor_run(-160, -160)
                 basic.pause(750)
                 // rovně
-                motor_run(-255, 255)
-                basic.pause(200)
-                // doprava
-                motor_run(-255, -255)
-                basic.pause(1500)
+                motor_run(160, -160)
+                basic.pause(100)
+                // doleva
+                motor_run(-160, -160)
+                basic.pause(380)
                 // rovně
-                motor_run(-255, 255)
-                basic.pause(200)
-                // doprava
-                motor_run(-255, -255)
-                basic.pause(750)
-                // rovně
-                motor_run(255, -255)
-                basic.pause(200)
+                motor_run(160, -160)
+                basic.pause(100)
             }
             
             // doleva
             around = false
         } else if (!m && !l && !r) {
             // kduž ani jeden ze senzorů nesnímá čáru => couvej
-            motor_run(255, 255)
+            motor_run(160, 160)
         } else if (r && l && m) {
             //  když zaznamená pravý, prostřední i levý senzor (počítáno s tím že je to křižovatka) =>
             if (where == "left") {
                 //  zaboč doleva
-                motor_run(-255, -255)
+                motor_run(-160, -160)
                 basic.pause(75)
-                motor_run(255, -255)
+                motor_run(160, -160)
                 basic.pause(200)
                 PCAmotor.MotorStopAll()
                 basic.pause(150)
             } else if (where == "right") {
                 //  zaboč doprava
-                motor_run(-255, -255)
+                motor_run(-160, -160)
                 basic.pause(75)
-                motor_run(-255, 255)
+                motor_run(-160, 160)
                 basic.pause(200)
                 PCAmotor.MotorStopAll()
                 basic.pause(150)
             } else if (where == "forward") {
                 //  neodbočuj
-                motor_run(-255, -255)
+                motor_run(-160, -160)
             }
             
             where = "forward"
         } else if (!r && !l && m) {
             //  po přejetí křižovatky nastav se defaulně do projetí křižovatkou rovně
             //  když nesnímáš čáru => rovně
-            motor_run(-255, -255)
+            motor_run(199, 130)
         } else if (l && m) {
             //  když levý a prostřední senzor snímá čáru => zaboč doleva
-            motor_run(-60, 60)
+            motor_run(100, -100)
         } else if (r && m) {
             //  když pravý a prostřední senzor snímá čáru => zaboč doprava
-            motor_run(60, -60)
+            motor_run(-100, 100)
         }
         
     }
     
 })
-//  FUNKCE pro ovládíní mobilním zařízením
